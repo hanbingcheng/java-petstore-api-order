@@ -1,0 +1,64 @@
+OrderStatus:
+  title: Order Status
+  description: Order Status
+  type: string
+  enum:
+    - placed
+    - approved
+    - delivered
+
+Order:
+  title: an Order
+  description: A pet for sale in the pet store
+  type: object
+  properties:
+    id:
+      type: integer
+      format: int64
+      example: 1
+    petId:
+      type: integer
+      format: int64
+      example: 198772
+    userId:
+      type: integer
+      format: int64
+      example: 123
+    status:
+      $ref: '#/OrderStatus'
+    shipDate:
+      type: string
+      format: date-time
+    complete:
+      type: boolean
+
+Pager:
+  description: ページング情報
+  type: object
+  properties:
+    total:
+      description: 検索結果の総件数
+      type: integer
+      format: int64
+    pages:
+      description: 検索結果の総ページ数
+      type: integer
+      format: int32
+    isFirstPage:
+      description: 最初のページかどうか
+      type: boolean
+    isLastPage:
+      description: 最後のページかどうか
+      type: boolean
+    pageNum:
+      description: 現在のページ番号
+      type: integer
+      format: int32
+    pageSize:
+      description: 1ページあたりの表示数
+      type: integer
+      format: int32
+    size:
+      description: 現在のページの実際の件数
+      type: integer
+      format: int32

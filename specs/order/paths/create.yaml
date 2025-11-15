@@ -1,0 +1,65 @@
+post:
+  tags:
+    - order
+  summary: place an order for pet
+  description: Place a new order in the store.
+  operationId: placeOrder
+  requestBody:
+    description: Create a new pet in the store
+    content:
+      application/json:
+        schema:
+          $ref: "#/schemas/PlaceOrderRequestBody"
+    required: true
+  responses:
+    '200':
+      description: Successful operation
+      content:
+        application/json:
+          schema:
+            $ref: "#/schemas/PlaceOrderResponseBody"
+    '400':
+      description: Invalid input
+      content:
+        application/json:
+          schema:
+            $ref: '../components/error.yaml#/ErrorResponseBadRequest'
+    '422':
+      description: Validation exception
+      content:
+        application/json:
+          schema:
+            $ref: '../components/error.yaml#/ErrorResponseBadRequest'
+    '500':
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/error.yaml#/ErrorResponse'
+  security:
+    - petstore_auth:
+      - write:pets
+      - read:pets
+
+schemas:
+  PlaceOrderRequestBody:
+    type: object
+    required:
+      - petId
+    properties:
+      petId:
+        type: integer
+        format: int64
+        example: 198772
+      userId:
+        type: integer
+        format: int64
+        example: 12345
+
+  PlaceOrderResponseBody:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+        example: 1

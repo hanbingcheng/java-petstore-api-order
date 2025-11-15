@@ -1,4 +1,4 @@
-package com.petstore.api_store;
+package com.example.petstore.api.order;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

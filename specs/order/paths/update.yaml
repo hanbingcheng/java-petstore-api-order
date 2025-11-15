@@ -1,0 +1,60 @@
+post:
+  tags:
+    - order
+  summary: update an order for pet
+  description: update an order status in the store.
+  operationId: updateOrder
+  parameters:
+    - name: id
+      in: path
+      description: ID of order that needs to be fetched
+      required: true
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+  requestBody:
+    description: Update an order in the store
+    content:
+      application/json:
+        schema:
+          $ref: "#/schemas/UpdateOrderRequestBody"
+    required: true
+  responses:
+    '200':
+      description: Successful operation
+    '400':
+      description: Invalid input
+      content:
+        application/json:
+          schema:
+            $ref: '../components/error.yaml#/ErrorResponseBadRequest'
+    '422':
+      description: Validation exception
+      content:
+        application/json:
+          schema:
+            $ref: '../components/error.yaml#/ErrorResponseBadRequest'
+    '500':
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/error.yaml#/ErrorResponse'
+
+schemas:
+  UpdateOrderRequestBody:
+    type: object
+    required:
+      - status
+    properties:
+      status:
+        $ref: '../components/schemas.yaml#/OrderStatus'
+      shipDate:
+        type: string
+        format: date-time
+        example: "2025-10-01T12:00:00+09:00"
+      complete:
+        type: boolean
+        default: false
+        example: false

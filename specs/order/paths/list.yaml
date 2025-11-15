@@ -1,0 +1,108 @@
+get:
+  tags:
+    - order
+  summary: list orders by status
+  description: Multiple status values can be provided with comma separated strings.
+  operationId: findOrderssByStatus
+  parameters:
+    - name: X-User-Id
+      in: header
+      description: ID of user to return
+      required: false
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+    - name: status
+      in: query
+      description: Status values that need to be considered for filter
+      required: true
+      explode: true
+      schema:
+        $ref: '../components/schemas.yaml#/OrderStatus'
+        default: available
+    - name: pageNum
+      in: query
+      description: ページ番号
+      required: true
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        default: 1
+      example: 1
+    - name: pageSize
+      in: query
+      description: 1ページに表示する件数
+      required: true
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 100
+        default: 10
+  responses:
+    '200':
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/responseBodies/FindOrdersByStatusResponseBody'
+    '400':
+      description: Invalid status/tag value
+      content:
+        application/json:
+          schema:
+            $ref: '../components/error.yaml#/ErrorResponseBadRequest'
+    '500':
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: '../components/error.yaml#/ErrorResponse'
+  security:
+      - petstore_auth:
+        - write:pets
+        - read:pets
+
+responseBodies:
+  FindOrdersByStatusResponseBody:
+    type: object
+    properties:
+      pager:
+        $ref: '../components/schemas.yaml#/Pager'
+      list:
+        type: array
+        items:
+          $ref: '../components/schemas.yaml#/Order'
+
+Pager:
+  description: ページング情報
+  type: object
+  properties:
+    total:
+      description: 検索結果の総件数
+      type: integer
+      format: int64
+    pages:
+      description: 検索結果の総ページ数
+      type: integer
+      format: int32
+    isFirstPage:
+      description: 最初のページかどうか
+      type: boolean
+    isLastPage:
+      description: 最後のページかどうか
+      type: boolean
+    pageNum:
+      description: 現在のページ番号
+      type: integer
+      format: int32
+    pageSize:
+      description: 1ページあたりの表示数
+      type: integer
+      format: int32
+    size:
+      description: 現在のページの実際の件数
+      type: integer
+      format: int32

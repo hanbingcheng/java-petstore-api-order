@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.petstore.api.order.domain.repository.OrderRepository">
+
+    <select id="findByStatus">
+        SELECT
+            o.*
+        FROM
+            orders o
+        WHERE
+            o.status = #{status}
+        <if test="userId != null">
+            AND user_id = #{userId}
+        </if>
+    </select>
+
+    <select id="getOrderById">
+        SELECT
+            o.*,
+            p.name as petName,
+            u.username
+        FROM
+            orders o
+        INNER JOIN
+            pets p
+        ON
+            o.pet_id = p.id
+        INNER JOIN
+            users u
+        ON
+            o.user_id = u.id
+        WHERE
+            o.id = #{orderId}
+    </select>
+
+    <insert id="insert">
+        <selectKey keyProperty="id" resultType="long" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO orders
+        (
+            pet_id,
+            user_id,
+            status
+        )
+        VALUES
+        (
+            #{petId},
+            #{userId},
+            #{status}
+        )
+
+    </insert>
+
+    <update id="update">
+        UPDATE
+            orders
+        SET
+            ship_date = #{shipDate},
+            status = #{status},
+            complete = #{complete}
+        WHERE
+            id = #{id}
+    </update>
+</mapper>

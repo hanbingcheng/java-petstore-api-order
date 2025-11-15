@@ -1,11 +1,23 @@
+import org.openapitools.generator.gradle.plugin.tasks.GenerateTask
+
 plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.4'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'com.diffplug.spotless' version '6.25.0'
+	id 'com.github.spotbugs' version '6.0.7'
+	id 'org.openapi.generator' version '7.14.0'
 }
 
-group = 'com.petstore'
-version = '0.0.1-SNAPSHOT'
+group = 'com.example.petstore'
+version = '0.0.1'
+base {
+	archivesName = 'api-order'
+}
+
+ext {
+	springCloudVersion = '2025.0.0'
+}
 
 java {
 	toolchain {
@@ -14,15 +26,126 @@ java {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
 }
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation('org.springframework.boot:spring-boot-starter-web') {
+		exclude module: 'spring-boot-starter-tomcat'
+	}
+	implementation 'org.springframework.boot:spring-boot-starter-jetty'
+	implementation 'org.springframework.boot:spring-boot-autoconfigure'
+
+	// cache
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	implementation 'com.github.ben-manes.caffeine:caffeine:3.2.2'
+
+	// logging
+	implementation 'org.slf4j:slf4j-api'
+
+	// RDBMS
+	implementation 'software.aws.rds:aws-mysql-jdbc:1.1.11'
+	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3'
+	implementation 'com.github.pagehelper:pagehelper-spring-boot-starter:2.1.1'
+
+	// OpenApi関連
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
+	implementation "io.swagger.core.v3:swagger-annotations:2.2.19"
+
+	// ユーティティ
+	implementation 'org.apache.commons:commons-lang3:3.18.0'
+
+	// lombok
+	compileOnly 'org.projectlombok:lombok:1.18.30'
+	annotationProcessor 'org.projectlombok:lombok:1.18.30'
+	runtimeOnly 'org.springframework.boot:spring-boot-devtools'
+
+	// petstore
+	implementation ('com.example.petstore:common-core:0.1.0') {
+		exclude module: 'mybatis-spring-boot-starter'
+	}
+	implementation ('com.example.petstore:common-api:0.1.0') {
+		exclude module: 'mybatis-spring-boot-starter'
+	}
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+spotless {
+	java {
+		target 'src/main/**/*.java'
+		enforceCheck = false
+		removeUnusedImports()
+		googleJavaFormat()
+		ignoreErrorForPath('build')
+		lineEndings 'UNIX'
+	}
 }
+
+spotbugs {
+	excludeFilter = file("$rootDir/spotbugs-exclude.xml")
+}
+
+// ソース参照設定
+sourceSets {
+	main {
+		java {
+			srcDir 'src/main/java'
+			// OASにて出力したコードを含める
+			srcDir "$buildDir/oas-generate/src/main/java"
+		}
+		resources {
+			srcDir 'src/main/resources'
+		}
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+processResources {
+	duplicatesStrategy = DuplicatesStrategy.WARN
+}
+
+// OpenApiによる自動生成
+task openApiGenerateOrders(type: GenerateTask) {
+	generatorName = "spring"
+	inputSpec = "$rootDir/specs/order/order.yaml"
+	outputDir = "${layout.buildDirectory.get().asFile}/oas-generate"
+	apiPackage = "com.example.petstore.api.order.oas.api"
+	invokerPackage = "com.example.petstore.api.order.oas.invoker"
+	modelPackage = "com.example.petstore.api.order.oas.model"
+	configOptions = [
+			title                  : "order",
+			groupId                : "com.example.petstore",
+			delegatePattern        : "true",
+			dateLibrary            : "java8-localdatetime",
+			hideGenerationTimestamp: "true",
+			serializableModel      : "true",
+			useTags                : "true",
+			useSpringBoot3         : "true",
+			openApiNullable	       : "false",
+			containerDefaultToNull: "true"
+	]
+	globalProperties = [
+			apis           : "",
+			models         : "",
+			supportingFiles: "ApiUtil.java,ApiKeyRequestInterceptor.java,ClientConfiguration.java"
+	]
+}
+
+task openApiGenerateAll(dependsOn: ['clean', 'openApiGenerateOrders']) {}
+
+// タスク制御
+compileJava.dependsOn tasks.openApiGenerateAll
+compileJava.dependsOn tasks.spotlessApply
