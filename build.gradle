@@ -120,7 +120,7 @@ processResources {
 // OpenApiによる自動生成
 task openApiGenerateOrders(type: GenerateTask) {
 	generatorName = "spring"
-	inputSpec = "$rootDir/specs/order/order.yaml"
+	inputSpec = "$rootDir/specs/order.yaml"
 	outputDir = "${layout.buildDirectory.get().asFile}/oas-generate"
 	apiPackage = "com.example.petstore.api.order.oas.api"
 	invokerPackage = "com.example.petstore.api.order.oas.invoker"
